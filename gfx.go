@@ -359,6 +359,12 @@ func (f *Font) symbol(r rune) *glyph {
 	return &glyph{mask: m, off: image.Pt(1, top), advance: w + 3}
 }
 
+// has reports whether the font itself has a glyph for r.
+func (f *Font) has(r rune) bool {
+	_, ok := f.face.GlyphAdvance(r)
+	return ok
+}
+
 func (f *Font) Width(s string) int {
 	w := 0
 	for _, r := range s {
@@ -423,11 +429,15 @@ func (f *Font) Ellipsize(s string, w int) string {
 	if f.Width(s) <= w {
 		return s
 	}
+	dots := "…"
+	if !f.has('…') {
+		dots = "."
+	}
 	for len(s) > 0 {
 		_, n := utf8.DecodeLastRuneInString(s)
 		s = s[:len(s)-n]
-		if f.Width(s+"…") <= w {
-			return s + "…"
+		if f.Width(s+dots) <= w {
+			return s + dots
 		}
 	}
 	return ""

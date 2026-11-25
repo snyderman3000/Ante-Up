@@ -418,29 +418,28 @@ func (u *UI) drawRun(c *Canvas) {
 		line = fmt.Sprintf("Ante %d  Endless", r.Ante)
 	}
 	c.Text(u.fS, x, u.textY(u.fS, 116, 28), line, colGold)
-	c.TextRight(u.fS, 300, u.textY(u.fS, 88, 28), r.Seed, colFaint)
 
 	// --- selected boss (right) ---
 	row := r.Rows[u.bossCur]
 	b := row.Info
-	u.panel(c, 316, 56, c.W-324, 96, colPanel)
+	px := 316
+	u.panel(c, px, 56, c.W-px-8, 96, colPanel)
 	if chip := u.a.BlindChip(b); chip != nil {
-		c.Sprite(chip, 324, 62, 68, 68, grey(row))
+		c.Sprite(chip, px+6, 60, 34, 34, grey(row))
 	} else {
-		c.Circle(358, 96, 30, b.Col, true, 0)
+		c.Circle(px+23, 77, 15, b.Col, true, 0)
 	}
-	bx := 400
-	c.Text(u.fS, bx, u.textY(u.fS, 58, 28), u.fS.Ellipsize(b.Name, c.W-bx-16), mix(b.Col, colWhite, 0.35))
+	right := c.W - 16
+	c.Text(u.fS, px+46, u.textY(u.fS, 60, 34), u.fS.Ellipsize(b.Name, right-px-46), mix(b.Col, colWhite, 0.45))
 	status, scol := u.bossStatus(row)
-	c.Text(u.fS, bx, u.textY(u.fS, 84, 26), status, scol)
-	eff := u.a.BossText(b, r.MostHand)
-	ew := c.W - bx - 14
-	el := u.fS.Wrap(eff, ew)
+	c.Text(u.fS, px+8, u.textY(u.fS, 94, 18), u.fS.Ellipsize(status, right-px-8), scol)
+	ew := right - px - 8
+	el := u.fS.Wrap(u.a.BossText(b, r.MostHand), ew)
 	if len(el) > 2 {
 		el = []string{el[0], u.fS.Ellipsize(strings.Join(el[1:], " "), ew)}
 	}
 	for i, l := range el {
-		c.Text(u.fS, bx, u.textY(u.fS, 106+i*20, 22), l, colText)
+		c.Text(u.fS, px+8, u.textY(u.fS, 113+i*18, 18), l, colText)
 	}
 
 	// --- board ---
@@ -526,29 +525,24 @@ func (u *UI) drawBossCell(c *Canvas, x, y, w, h int, row *BossRow, sel bool) {
 	if grey(row) > 0 {
 		txt = colFaint
 	}
-	right := x + w - 6
-	tag, tcol := "", colText
+	// status badge in the chip's bottom-right corner
+	bx, by := x+30, y+h-9
 	switch row.State {
-	case BossBeaten:
-		tag, tcol = "✓", colGreen
-	case BossSeen:
-		tag, tcol = "✓?", colGreen
+	case BossBeaten, BossSeen:
+		c.Circle(bx, by, 8, colGreen, true, 0)
+		c.TextCenter(u.fS, bx+1, u.textY(u.fS, by-8, 16), "✓", colWhite)
 	case BossCurrent:
-		tag, tcol = "★", colGold
+		c.Circle(bx, by, 8, colGold, true, 0)
+		c.TextCenter(u.fS, bx+1, u.textY(u.fS, by-8, 16), "★", colWhite)
 	case BossPool:
-		tag, tcol = "?", colBlue
+		c.Circle(bx, by, 8, colBlue, true, 0)
+		c.TextCenter(u.fS, bx+1, u.textY(u.fS, by-8, 16), "?", colWhite)
 	case BossLater:
-		tag, tcol = "A"+strconv.Itoa(row.From), colFaint
+		c.TextCenter(u.fS, x+19, u.textY(u.fS, y, h), strconv.Itoa(row.From), colText)
 	case BossBanned:
-		tag, tcol = "×", colFaint
+		c.TextCenter(u.fS, x+19, u.textY(u.fS, y, h), "×", colRed)
 	}
-	ty := u.textY(u.fS, y, h)
-	if tag != "" {
-		right = right - u.fS.Width(tag)
-		c.Text(u.fS, right, ty, tag, tcol)
-		right -= 6
-	}
-	c.Text(u.fS, x+40, ty, u.fS.Ellipsize(shortBoss(b), right-(x+40)), txt)
+	c.Text(u.fS, x+42, u.textY(u.fS, y, h), u.fS.Ellipsize(shortBoss(b), x+w-4-(x+42)), txt)
 }
 
 // ---------- DECKS tab ----------
@@ -619,7 +613,7 @@ func (u *UI) drawDecks(c *Canvas) {
 			rec := recs[s]
 			cell := colPanelDk
 			txt := colFaint
-			label := "·"
+			label := "-"
 			if rec.W > 0 {
 				cell = mix(colPanelDk, Stakes[s].Col, 0.38)
 				txt = colWhite
@@ -677,15 +671,15 @@ func (u *UI) drawDecks(c *Canvas) {
 		where = stakeName(u.deckCol)
 	}
 	h := c.H - 34 - dy - 8
-	l1 := fmt.Sprintf("%s · %s", name, where)
+	l1 := fmt.Sprintf("%s - %s", name, where)
 	l2 := "No finished runs yet"
 	if rec.Games() > 0 {
-		l2 = fmt.Sprintf("%s, %s · %s", plural(rec.W, "win", "wins"), plural(rec.L, "loss", "losses"), pct(rec))
+		l2 = fmt.Sprintf("%s, %s (%s)", plural(rec.W, "win", "wins"), plural(rec.L, "loss", "losses"), pct(rec))
 	}
 	if u.deckRow == len(Decks) && u.deckCol == 9 {
-		l2 += fmt.Sprintf(" · streak %d, best %d", p.Streak, p.BestStreak)
+		l2 += fmt.Sprintf(", streak %d", p.Streak)
 	} else if u.deckRow < len(Decks) && u.deckCol == 9 && best > 0 {
-		l2 += " · best win: " + Stakes[best].Name
+		l2 += ", best: " + Stakes[best].Name
 	}
 	c.Text(u.fS, 18, u.textY(u.fS, dy, h/2+2), u.fS.Ellipsize(l1, c.W-36), colWhite)
 	c.Text(u.fS, 18, u.textY(u.fS, dy+h/2-2, h/2), u.fS.Ellipsize(l2, c.W-36), colGold)
@@ -759,9 +753,9 @@ func (u *UI) drawJokers(c *Canvas) {
 		y += 24
 	}
 	y += 4
-	c.TextCenter(u.fS, px+pw/2, u.textY(u.fS, y, 22), "Picked up "+plural(j.Count, "time", "times"), colDim)
+	c.TextCenter(u.fS, px+pw/2, u.textY(u.fS, y, 22), fmt.Sprintf("Picked up %dx", j.Count), colDim)
 	y += 24
-	c.TextCenter(u.fS, px+pw/2, u.textY(u.fS, y, 22), fmt.Sprintf("Held at %d W / %d L", j.Total.W, j.Total.L), colText)
+	c.TextCenter(u.fS, px+pw/2, u.textY(u.fS, y, 22), fmt.Sprintf("%d W - %d L", j.Total.W, j.Total.L), colText)
 	y += 26
 	// per-stake wins as little coloured pips
 	pip := 20
