@@ -8,6 +8,12 @@ Balatro stats for **OnionOS** on the Miyoo Mini / Mini+, covering what the game 
 
 Created by Claude (Anthropic) for [snyderman3000](https://github.com/snyderman3000).
 
+| Run | Decks | Jokers |
+|---|---|---|
+| ![Boss board](docs/run.png) | ![Deck and stake records](docs/decks.png) | ![Joker records](docs/jokers.png) |
+
+Also available in [Mixtape](https://github.com/snyderman3000/mixtape).
+
 ## Install
 
 Unzip the release zip onto the root of your SD card (it adds `App/AnteUp`), then open **Ante Up** from Apps.
