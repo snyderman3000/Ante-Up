@@ -1,0 +1,6 @@
+{
+  "label": "Ante Up",
+  "icon": "/mnt/SDCARD/App/AnteUp/icon.png",
+  "launch": "launch.sh",
+  "description": "Balatro win rates by deck and stake, plus this run's boss blinds"
+}

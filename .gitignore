@@ -1,0 +1,6 @@
+dist/
+package/AnteUp/anteup
+package/AnteUp/data/
+go.sum
+go.work
+go.work.sum
