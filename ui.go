@@ -437,14 +437,14 @@ func (u *UI) drawRun(c *Canvas) {
 	right := c.W - 16
 	c.Text(u.fS, px+46, u.textY(u.fS, 58, 21), u.fS.Ellipsize(b.Name, right-px-46), mix(b.Col, colWhite, 0.45))
 	status, scol := u.bossStatus(row)
-	c.Text(u.fS, px+46, u.textY(u.fS, 79, 21), u.fS.Ellipsize(status, right-px-46), scol)
+	c.Text(u.fM, px+46, u.textY(u.fM, 80, 16), u.fM.Ellipsize(status, right-px-46), scol)
 	ew := right - px - 8
-	el := u.fS.Wrap(u.a.BossText(b, r.MostHand), ew)
+	el := u.fM.Wrap(u.a.BossText(b, r.MostHand), ew)
 	if len(el) > 2 {
-		el = []string{el[0], u.fS.Ellipsize(strings.Join(el[1:], " "), ew)}
+		el = []string{el[0], u.fM.Ellipsize(strings.Join(el[1:], " "), ew)}
 	}
 	for i, l := range el {
-		c.Text(u.fS, px+8, u.textY(u.fS, 102+i*22, 21), l, colText)
+		c.Text(u.fM, px+8, u.textY(u.fM, 104+i*20, 16), l, colText)
 	}
 
 	// --- board ---
