@@ -51,6 +51,7 @@ type UI struct {
 	jokers   []*JokerStats
 
 	fS, fL *Font // body (2× pixel font) and headings (3×)
+	fM     *Font // dense tables (1.5×)
 	pixel  bool  // true when using Balatro's own font
 	toast  string
 	toastT time.Time
@@ -65,12 +66,16 @@ func NewUI(env *Env, w, h int) *UI {
 		if f, err := tryFont(u.a.Font, 32); err == nil {
 			u.fS = f
 			u.fL, _ = tryFont(u.a.Font, 48)
+			u.fM, _ = tryFont(u.a.Font, 24)
 			u.pixel = true
 		}
 	}
 	if u.fS == nil {
 		u.fS = loadFont(fallbackTTF, 28)
 		u.fL = loadFont(fallbackTTF, 40)
+	}
+	if u.fM == nil {
+		u.fM = loadFont(fallbackTTF, 22)
 	}
 	u.hist = LoadHistory(env.DataDir)
 	u.Reload()
@@ -356,8 +361,8 @@ func (u *UI) drawFooter(c *Canvas) {
 	ty := u.textY(u.fS, y0+2, 32)
 	for _, h := range hints {
 		bw := u.fS.Width(h[0]) + 12
-		c.RoundRect(x, y0+7, bw, 22, 4, colDim)
-		c.TextCenter(u.fS, x+bw/2, u.textY(u.fS, y0+7, 22), h[0], colPanelDk)
+		c.RoundRect(x, y0+5, bw, 26, 5, colPanel2)
+		c.TextCenter(u.fS, x+bw/2, u.textY(u.fS, y0+5, 26), h[0], colWhite)
 		x = c.Text(u.fS, x+bw+6, ty, h[1], colText) + 16
 	}
 }
@@ -430,16 +435,16 @@ func (u *UI) drawRun(c *Canvas) {
 		c.Circle(px+23, 77, 15, b.Col, true, 0)
 	}
 	right := c.W - 16
-	c.Text(u.fS, px+46, u.textY(u.fS, 60, 34), u.fS.Ellipsize(b.Name, right-px-46), mix(b.Col, colWhite, 0.45))
+	c.Text(u.fS, px+46, u.textY(u.fS, 58, 21), u.fS.Ellipsize(b.Name, right-px-46), mix(b.Col, colWhite, 0.45))
 	status, scol := u.bossStatus(row)
-	c.Text(u.fS, px+8, u.textY(u.fS, 94, 18), u.fS.Ellipsize(status, right-px-8), scol)
+	c.Text(u.fS, px+46, u.textY(u.fS, 79, 21), u.fS.Ellipsize(status, right-px-46), scol)
 	ew := right - px - 8
 	el := u.fS.Wrap(u.a.BossText(b, r.MostHand), ew)
 	if len(el) > 2 {
 		el = []string{el[0], u.fS.Ellipsize(strings.Join(el[1:], " "), ew)}
 	}
 	for i, l := range el {
-		c.Text(u.fS, px+8, u.textY(u.fS, 113+i*18, 18), l, colText)
+		c.Text(u.fS, px+8, u.textY(u.fS, 102+i*22, 21), l, colText)
 	}
 
 	// --- board ---
@@ -599,7 +604,7 @@ func (u *UI) drawDecks(c *Canvas) {
 		if selRow {
 			c.RoundRect(x0, y, c.W-16, rowH-1, 4, mix(colBG, colPanel2, 0.7))
 		}
-		ty := u.textY(u.fS, y, rowH-1)
+		ty := u.textY(u.fM, y, rowH-1)
 		ncol := colText
 		if tot.Games() == 0 && i < len(Decks) {
 			ncol = colFaint
@@ -607,7 +612,7 @@ func (u *UI) drawDecks(c *Canvas) {
 		if best > 0 {
 			c.Circle(x0+6, y+rowH/2-1, 4, Stakes[best].Col, true, 0)
 		}
-		c.Text(u.fS, x0+14, ty, u.fS.Ellipsize(name, nameW-16), ncol)
+		c.Text(u.fM, x0+14, ty, u.fM.Ellipsize(name, nameW-16), ncol)
 		for s := 1; s <= 8; s++ {
 			cx := sx + (s-1)*colW
 			rec := recs[s]
@@ -623,7 +628,7 @@ func (u *UI) drawDecks(c *Canvas) {
 			}
 			if rec.Games() > 0 {
 				label = fmt.Sprintf("%d-%d", rec.W, rec.L)
-				if u.fS.Width(label) > colW-6 {
+				if u.fM.Width(label) > colW-6 {
 					label = pct(rec)
 				}
 			}
@@ -631,7 +636,7 @@ func (u *UI) drawDecks(c *Canvas) {
 			if selRow && s == u.deckCol {
 				c.Border(cx+1, y, colW-2, rowH-1, 2, colWhite)
 			}
-			c.TextCenter(u.fS, cx+colW/2, ty, label, txt)
+			c.TextCenter(u.fM, cx+colW/2, ty, label, txt)
 		}
 		tc := colFaint
 		if tot.Games() > 0 {
@@ -640,7 +645,7 @@ func (u *UI) drawDecks(c *Canvas) {
 		if selRow && u.deckCol == 9 {
 			c.Border(totX+1, y, totW-2, rowH-1, 2, colWhite)
 		}
-		c.TextCenter(u.fS, totX+totW/2, ty, pct(tot), tc)
+		c.TextCenter(u.fM, totX+totW/2, ty, pct(tot), tc)
 	}
 
 	// detail line for the selected cell
